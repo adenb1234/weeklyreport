@@ -40,7 +40,7 @@ def upload_data(chart_id, csv_data):
         st.write(f"Data uploaded successfully: {response.status_code}")
     return response.status_code
 
-# Function to publish a chart
+# Function to publish a chart and return the public URL
 def publish_chart(chart_id):
     url = f"https://api.datawrapper.de/v3/charts/{chart_id}/publish"
     response = requests.post(url, headers=headers)
@@ -48,7 +48,7 @@ def publish_chart(chart_id):
         st.write(f"Error publishing chart: {response.status_code}")
         st.write(response.text)
     response.raise_for_status()
-    return response.json()
+    return response.json().get('data', {}).get('publicUrl')
 
 # Streamlit front-end
 st.title("Weekly Report Visualizer")
@@ -102,41 +102,41 @@ if st.button("Generate Charts"):
         opinions_df = pd.DataFrame({'Category': ['Users', 'Growth'], 'Value': [opinions_users, opinions_growth]})
         opinions_csv = opinions_df.to_csv(index=False)
         upload_data(opinions_chart_id, opinions_csv)
-        opinions_publish_response = publish_chart(opinions_chart_id)
+        opinions_public_url = publish_chart(opinions_chart_id)
 
         # Create and upload data for pageviews chart
         pageviews_chart_id = create_chart("Site Pageviews Growth")
         pageviews_df = pd.DataFrame({'Category': ['Growth'], 'Value': [pageviews_growth]})
         pageviews_csv = pageviews_df.to_csv(index=False)
         upload_data(pageviews_chart_id, pageviews_csv)
-        pageviews_publish_response = publish_chart(pageviews_chart_id)
+        pageviews_public_url = publish_chart(pageviews_chart_id)
 
         # Create and upload data for top performers chart
         top_performers_chart_id = create_chart("Top Performers (>60,000)")
         top_performers_df = pd.DataFrame(top_performers)
         top_performers_csv = top_performers_df.to_csv(index=False)
         upload_data(top_performers_chart_id, top_performers_csv)
-        top_performers_publish_response = publish_chart(top_performers_chart_id)
+        top_performers_public_url = publish_chart(top_performers_chart_id)
 
         # Create and upload data for very solid performers chart
         solid_performers_chart_id = create_chart("Very Solid Performers (>33,000)")
         solid_performers_df = pd.DataFrame(solid_performers)
         solid_performers_csv = solid_performers_df.to_csv(index=False)
         upload_data(solid_performers_chart_id, solid_performers_csv)
-        solid_performers_publish_response = publish_chart(solid_performers_chart_id)
+        solid_performers_public_url = publish_chart(solid_performers_chart_id)
 
         # Display the chart URLs
         st.success("Charts generated successfully!")
-        st.write("Opinions Users Growth Chart URL:", opinions_publish_response.get('publicUrl', 'No URL found'))
-        st.write("Site Pageviews Growth Chart URL:", pageviews_publish_response.get('publicUrl', 'No URL found'))
-        st.write("Top Performers Chart URL:", top_performers_publish_response.get('publicUrl', 'No URL found'))
-        st.write("Very Solid Performers Chart URL:", solid_performers_publish_response.get('publicUrl', 'No URL found'))
+        st.write("Opinions Users Growth Chart URL:", opinions_public_url or "No URL found")
+        st.write("Site Pageviews Growth Chart URL:", pageviews_public_url or "No URL found")
+        st.write("Top Performers Chart URL:", top_performers_public_url or "No URL found")
+        st.write("Very Solid Performers Chart URL:", solid_performers_public_url or "No URL found")
 
         # Debugging information
-        st.write("Opinions Publish Response:", opinions_publish_response)
-        st.write("Pageviews Publish Response:", pageviews_publish_response)
-        st.write("Top Performers Publish Response:", top_performers_publish_response)
-        st.write("Very Solid Performers Publish Response:", solid_performers_publish_response)
+        st.write("Opinions Chart ID:", opinions_chart_id)
+        st.write("Pageviews Chart ID:", pageviews_chart_id)
+        st.write("Top Performers Chart ID:", top_performers_chart_id)
+        st.write("Very Solid Performers Chart ID:", solid_performers_chart_id)
 
     except requests.exceptions.RequestException as e:
         st.error(f"HTTP error occurred: {e}")
