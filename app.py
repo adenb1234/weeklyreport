@@ -132,7 +132,16 @@ if st.button("Generate Charts"):
         st.write("Top Performers Chart URL:", top_performers_publish_response.get('publicUrl', 'No URL found'))
         st.write("Very Solid Performers Chart URL:", solid_performers_publish_response.get('publicUrl', 'No URL found'))
 
+        # Debugging information
+        st.write("Opinions Publish Response:", opinions_publish_response)
+        st.write("Pageviews Publish Response:", pageviews_publish_response)
+        st.write("Top Performers Publish Response:", top_performers_publish_response)
+        st.write("Very Solid Performers Publish Response:", solid_performers_publish_response)
+
     except requests.exceptions.RequestException as e:
         st.error(f"HTTP error occurred: {e}")
+        st.write("Response content:", e.response.text if e.response else "No response content")
     except Exception as e:
         st.error(f"An error occurred: {e}")
+        import traceback
+        st.write("Traceback:", traceback.format_exc())
