@@ -84,26 +84,31 @@ if st.button("Generate Charts"):
     opinions_chart_id = create_chart("Opinions Users Growth")
     opinions_csv = f"Category,Value\nUsers,{opinions_users}\nGrowth,{opinions_growth}"
     upload_data(opinions_chart_id, opinions_csv)
-    publish_chart(opinions_chart_id)
+    opinions_publish_response = publish_chart(opinions_chart_id)
 
     # Create and upload data for pageviews chart
     pageviews_chart_id = create_chart("Site Pageviews Growth")
     pageviews_csv = f"Category,Value\nGrowth,{pageviews_growth}"
     upload_data(pageviews_chart_id, pageviews_csv)
-    publish_chart(pageviews_chart_id)
+    pageviews_publish_response = publish_chart(pageviews_chart_id)
 
     # Create and upload data for top performers chart
     top_performers_chart_id = create_chart("Top Performers (>60,000)")
     top_performers_df = pd.DataFrame(top_performers)
     top_performers_csv = top_performers_df.to_csv(index=False)
     upload_data(top_performers_chart_id, top_performers_csv)
-    publish_chart(top_performers_chart_id)
+    top_performers_publish_response = publish_chart(top_performers_chart_id)
 
     # Create and upload data for very solid performers chart
     solid_performers_chart_id = create_chart("Very Solid Performers (>33,000)")
     solid_performers_df = pd.DataFrame(solid_performers)
     solid_performers_csv = solid_performers_df.to_csv(index=False)
     upload_data(solid_performers_chart_id, solid_performers_csv)
-    publish_chart(solid_performers_chart_id)
+    solid_performers_publish_response = publish_chart(solid_performers_chart_id)
 
+    # Display the chart URLs
     st.success("Charts generated successfully!")
+    st.write("Opinions Users Growth Chart URL:", opinions_publish_response.get('publicUrl'))
+    st.write("Site Pageviews Growth Chart URL:", pageviews_publish_response.get('publicUrl'))
+    st.write("Top Performers Chart URL:", top_performers_publish_response.get('publicUrl'))
+    st.write("Very Solid Performers Chart URL:", solid_performers_publish_response.get('publicUrl'))
