@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import pandas as pd
 import re
+import io
 
 # Streamlit secret for the Datawrapper API token
 api_token = st.secrets["DATAWRAPPER_API_TOKEN"]
@@ -20,17 +21,21 @@ def create_chart(title, chart_type="d3-bars"):
         "theme": "default"
     }
     response = requests.post(url, headers=headers, json=data)
-    response.raise_for_status()  # Ensure we raise an error for bad responses
+    response.raise_for_status()
     return response.json()['id']
 
 # Function to upload data to a chart
 def upload_data(chart_id, csv_data):
     url = f"https://api.datawrapper.de/v3/charts/{chart_id}/data"
-    response = requests.put(url, headers=headers, data=csv_data)
+    csv_headers = {
+        "Authorization": f"Bearer {api_token}",
+        "Content-Type": "text/csv"
+    }
+    response = requests.put(url, headers=csv_headers, data=csv_data.encode('utf-8'))
     if response.status_code != 204:
         st.write(f"Error uploading data: {response.status_code}")
         st.write(response.text)
-    response.raise_for_status()  # Ensure we raise an error for bad responses
+    response.raise_for_status()
     return response.status_code
 
 # Function to publish a chart
@@ -40,7 +45,7 @@ def publish_chart(chart_id):
     if response.status_code != 200:
         st.write(f"Error publishing chart: {response.status_code}")
         st.write(response.text)
-    response.raise_for_status()  # Ensure we raise an error for bad responses
+    response.raise_for_status()
     return response.json()
 
 # Streamlit front-end
@@ -60,7 +65,7 @@ if st.button("Generate Charts"):
         # Extracting opinions data
         opinions_match = opinions_regex.search(weekly_report)
         if opinions_match:
-            opinions_users = float(opinions_match.group(1)) * 1e6
+            opinions_users = float(opinions_match.group(1))
             opinions_growth = int(opinions_match.group(2))
 
         # Extracting pageviews data
@@ -92,13 +97,15 @@ if st.button("Generate Charts"):
 
         # Create and upload data for opinions chart
         opinions_chart_id = create_chart("Opinions Users Growth")
-        opinions_csv = f"Category,Value\nUsers,{opinions_users}\nGrowth,{opinions_growth}"
+        opinions_df = pd.DataFrame({'Category': ['Users', 'Growth'], 'Value': [opinions_users, opinions_growth]})
+        opinions_csv = opinions_df.to_csv(index=False)
         upload_data(opinions_chart_id, opinions_csv)
         opinions_publish_response = publish_chart(opinions_chart_id)
 
         # Create and upload data for pageviews chart
         pageviews_chart_id = create_chart("Site Pageviews Growth")
-        pageviews_csv = f"Category,Value\nGrowth,{pageviews_growth}"
+        pageviews_df = pd.DataFrame({'Category': ['Growth'], 'Value': [pageviews_growth]})
+        pageviews_csv = pageviews_df.to_csv(index=False)
         upload_data(pageviews_chart_id, pageviews_csv)
         pageviews_publish_response = publish_chart(pageviews_chart_id)
 
@@ -122,12 +129,6 @@ if st.button("Generate Charts"):
         st.write("Site Pageviews Growth Chart URL:", pageviews_publish_response.get('publicUrl', 'No URL found'))
         st.write("Top Performers Chart URL:", top_performers_publish_response.get('publicUrl', 'No URL found'))
         st.write("Very Solid Performers Chart URL:", solid_performers_publish_response.get('publicUrl', 'No URL found'))
-
-        # Debugging information
-        st.write("Opinions Publish Response:", opinions_publish_response)
-        st.write("Pageviews Publish Response:", pageviews_publish_response)
-        st.write("Top Performers Publish Response:", top_performers_publish_response)
-        st.write("Very Solid Performers Publish Response:", solid_performers_publish_response)
 
     except requests.exceptions.RequestException as e:
         st.error(f"HTTP error occurred: {e}")
