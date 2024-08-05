@@ -20,18 +20,21 @@ def create_chart(title, chart_type="d3-bars"):
         "theme": "default"
     }
     response = requests.post(url, headers=headers, json=data)
+    response.raise_for_status()  # Ensure we raise an error for bad responses
     return response.json()['id']
 
 # Function to upload data to a chart
 def upload_data(chart_id, csv_data):
     url = f"https://api.datawrapper.de/v3/charts/{chart_id}/data"
     response = requests.put(url, headers=headers, data=csv_data)
+    response.raise_for_status()  # Ensure we raise an error for bad responses
     return response.status_code
 
 # Function to publish a chart
 def publish_chart(chart_id):
     url = f"https://api.datawrapper.de/v3/charts/{chart_id}/publish"
     response = requests.post(url, headers=headers)
+    response.raise_for_status()  # Ensure we raise an error for bad responses
     return response.json()
 
 # Streamlit front-end
@@ -108,7 +111,13 @@ if st.button("Generate Charts"):
 
     # Display the chart URLs
     st.success("Charts generated successfully!")
-    st.write("Opinions Users Growth Chart URL:", opinions_publish_response.get('publicUrl'))
-    st.write("Site Pageviews Growth Chart URL:", pageviews_publish_response.get('publicUrl'))
-    st.write("Top Performers Chart URL:", top_performers_publish_response.get('publicUrl'))
-    st.write("Very Solid Performers Chart URL:", solid_performers_publish_response.get('publicUrl'))
+    st.write("Opinions Users Growth Chart URL:", opinions_publish_response.get('publicUrl', 'No URL found'))
+    st.write("Site Pageviews Growth Chart URL:", pageviews_publish_response.get('publicUrl', 'No URL found'))
+    st.write("Top Performers Chart URL:", top_performers_publish_response.get('publicUrl', 'No URL found'))
+    st.write("Very Solid Performers Chart URL:", solid_performers_publish_response.get('publicUrl', 'No URL found'))
+
+    # Debugging information
+    st.write("Opinions Publish Response:", opinions_publish_response)
+    st.write("Pageviews Publish Response:", pageviews_publish_response)
+    st.write("Top Performers Publish Response:", top_performers_publish_response)
+    st.write("Very Solid Performers Publish Response:", solid_performers_publish_response)
