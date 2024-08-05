@@ -32,10 +32,12 @@ def upload_data(chart_id, csv_data):
         "Content-Type": "text/csv"
     }
     response = requests.put(url, headers=csv_headers, data=csv_data.encode('utf-8'))
-    if response.status_code != 204:
+    if response.status_code not in [204, 201]:
         st.write(f"Error uploading data: {response.status_code}")
         st.write(response.text)
-    response.raise_for_status()
+        response.raise_for_status()
+    else:
+        st.write(f"Data uploaded successfully: {response.status_code}")
     return response.status_code
 
 # Function to publish a chart
